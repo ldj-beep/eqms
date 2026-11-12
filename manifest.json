@@ -4,7 +4,7 @@
 "description": "실시간 장비 교정 모니터링 및 모바일 QR 스마트 사용예약 시스템",
 "start_url": "./index.html",
   "scope": "./",
-  "display": "minimal-ui",
+  "display": "standalone",
   "background_color": "#1e1b4b",
 "theme_color": "#4338ca",
 "orientation": "portrait-primary",
