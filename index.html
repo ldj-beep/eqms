@@ -3943,34 +3943,23 @@ const optActive = document.getElementById('email-opt-active');
       let selected = [...(window.selectedInstTableIds || [])];
 
       if (e.shiftKey && window.lastClickedInstId && visibleIds.includes(window.lastClickedInstId)) {
-        // 1. Shift + 클릭: 마지막 클릭 행 ~ 현재 클릭 행까지 연속 범위 일괄 선택
+        // Shift + 클릭: 마지막 클릭 행 ~ 현재 클릭 행까지 연속 범위 누적 선택
         const startIdx = visibleIds.indexOf(window.lastClickedInstId);
         const endIdx = visibleIds.indexOf(instId);
         const [minIdx, maxIdx] = [Math.min(startIdx, endIdx), Math.max(startIdx, endIdx)];
         const rangeIds = visibleIds.slice(minIdx, maxIdx + 1);
 
-        if (e.ctrlKey || e.metaKey) {
-          rangeIds.forEach(id => { if (!selected.includes(id)) selected.push(id); });
-        } else {
-          selected = rangeIds;
-        }
-      } else if (e.ctrlKey || e.metaKey) {
-        // 2. Ctrl(Cmd) + 클릭: 개별 행 다중 토글 선택/해제
+        rangeIds.forEach(id => {
+          if (!selected.includes(id)) selected.push(id);
+        });
+      } else {
+        // 일반 클릭: 별도 키 조합 없이 클릭할 때마다 개별 다중 선택/해제 토글 고정
         if (selected.includes(instId)) {
           selected = selected.filter(id => id !== instId);
         } else {
           selected.push(instId);
         }
         window.lastClickedInstId = instId;
-      } else {
-        // 3. 일반 클릭: 이미 단독 선택된 행을 다시 누르면 선택 해제, 아니면 해당 행 단독 선택
-        if (selected.length === 1 && selected[0] === instId) {
-          selected = [];
-          window.lastClickedInstId = null;
-        } else {
-          selected = [instId];
-          window.lastClickedInstId = instId;
-        }
       }
 
       window.selectedInstTableIds = selected;
@@ -4038,58 +4027,6 @@ const optActive = document.getElementById('email-opt-active');
       window.selectedInstTableIds = [];
       window.lastClickedInstId = null;
       updateInstRowHighlightDOM();
-      updateInstReserveSelectionUI();
-
-      // 사용예약 탭으로 전환 및 선택된 장비 칩 렌더링
-      switchTab('reservations');
-      renderGroupChips();
-      renderReservationSelect();
-
-      const formEl = document.getElementById('reservation-form');
-      if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
-
-      showToast(
-        addedCount > 0 
-          ? `선택한 장비 ${addedCount}대가 예약 대상 목록에 일괄 추가되었습니다.` 
-          : "선택한 장비가 이미 예약 대상 목록에 담겨 있습니다.",
-        "success"
-      );
-    };
-      }
-
-      // 전체 선택 체크박스 상태 동기화
-      const rowChks = document.querySelectorAll('.chk-inst-row');
-      if (masterChk && rowChks.length > 0) {
-        masterChk.checked = Array.from(rowChks).every(c => c.checked);
-      } else if (masterChk) {
-        masterChk.checked = false;
-      }
-    }
-
-    // 4. 선택된 장비들을 사용예약 탭의 '선택된 장비 목록'에 일괄 추가 후 이동
-    window.sendSelectedInstrumentsToReserve = function() {
-      if (!window.currentUserSession) {
-        openAuthModal();
-        return;
-      }
-      const ids = window.selectedInstTableIds || [];
-      if (ids.length === 0) {
-        showToast("예약할 장비를 최소 1대 이상 체크박스로 선택해 주세요.", "error");
-        return;
-      }
-
-      if (!window.selectedGroupInstIds) window.selectedGroupInstIds = [];
-      let addedCount = 0;
-
-      ids.forEach(id => {
-        if (!window.selectedGroupInstIds.includes(id)) {
-          window.selectedGroupInstIds.push(id);
-          addedCount++;
-        }
-      });
-
-      // 장비관리 테이블 선택 상태 초기화
-      window.selectedInstTableIds = [];
       updateInstReserveSelectionUI();
 
       // 사용예약 탭으로 전환 및 선택된 장비 칩 렌더링
